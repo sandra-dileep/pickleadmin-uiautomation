@@ -16,6 +16,10 @@ export class OverviewPage {
   readonly failedGenerationsCard: Locator;
   readonly successfulGenerationsCard: Locator;
   readonly billingPlansCard: Locator;
+  readonly welcomeAiCreditsCard: Locator;
+  readonly creditPacksCard: Locator;
+  readonly generationCostsCard: Locator;
+  readonly referralRewardsCard: Locator;
 
   // TEMPLATES
   readonly imageTemplatesCard: Locator;
@@ -30,8 +34,11 @@ export class OverviewPage {
   readonly subcategoriesCard: Locator;
   readonly tagsCard: Locator;
 
-  // TRANSLATIONS & COPY
+  // TRANSLATIONS & COPY (translationKeysCard is the tile; translationsSection
+  // also covers the breakdown rows below it — Fully localized, Missing
+  // English, per-locale gaps, and the "Manage translations" link)
   readonly translationKeysCard: Locator;
+  readonly translationsSection: Locator;
 
   // SHORTCUTS
   readonly shortcutsSection: Locator;
@@ -45,6 +52,10 @@ export class OverviewPage {
     this.failedGenerationsCard = this.statCard('Failed generations');
     this.successfulGenerationsCard = this.statCard('Successful generations');
     this.billingPlansCard = this.statCard('Billing plans');
+    this.welcomeAiCreditsCard = this.statCard('Welcome AI credits');
+    this.creditPacksCard = this.statCard('Credit packs');
+    this.generationCostsCard = this.statCard('Generation costs');
+    this.referralRewardsCard = this.statCard('Referral rewards');
 
     this.imageTemplatesCard = this.statCard('Image templates');
     this.videoTemplatesCard = this.statCard('Video templates');
@@ -57,6 +68,7 @@ export class OverviewPage {
     this.tagsCard = this.statCard('Tags');
 
     this.translationKeysCard = this.statCard('Translation keys');
+    this.translationsSection = this.section('Translations & copy');
 
     this.shortcutsSection = this.section('Shortcuts');
   }

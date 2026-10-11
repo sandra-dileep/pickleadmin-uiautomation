@@ -3,7 +3,7 @@ import { AUTH_FILE } from '../../utils/auth';
 import { OverviewPage } from '../../pages/OverviewPage';
 
 test.describe('Overview', () => {
-  // Scoped to this describe block only — OV-09 below needs a clean session.
+  // Scoped to this describe block only — OV-14 below needs a clean session.
   test.use({ storageState: AUTH_FILE });
 
   let overview: OverviewPage;
@@ -14,45 +14,118 @@ test.describe('Overview', () => {
   });
 
   // OV-01
-  test('loads with all sections', async ({ page }) => {
-    await expect(overview.heading).toBeVisible();
+  test('loads with all sections, exact heading text', async ({ page }) => {
+    await expect(overview.heading).toHaveText('Dashboard');
     for (const title of [
+      'Overview',
+      'Templates',
       'Content team activity',
       'Reviewer activity',
       'Content structure',
       'Translations & copy',
       'Shortcuts',
     ]) {
-      await expect(page.getByRole('heading', { name: title })).toBeVisible();
+      await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible();
     }
   });
 
   // OV-02
-  test('OVERVIEW stat cards show data', async () => {
-    for (const card of [
-      overview.usersCard,
-      overview.jobsInProgressCard,
-      overview.failedGenerationsCard,
-      overview.successfulGenerationsCard,
-      overview.billingPlansCard,
-    ]) {
-      await expect(card).toBeVisible();
-      await expect(card).toContainText(/\d/);
-    }
+  test('Users card: label, caption and CTA text', async () => {
+    await expect(overview.usersCard).toContainText('Users');
+    await expect(overview.usersCard).toContainText(/\d/);
+    await expect(overview.usersCard).toContainText('Registered accounts');
+    await expect(overview.usersCard.getByRole('link', { name: 'View users' })).toBeVisible();
   });
 
   // OV-03
-  test('TEMPLATES cards show data', async () => {
-    await expect(overview.imageTemplatesCard).toContainText(/\d/);
-    await expect(overview.imageTemplatesCard).toContainText('Live (active)');
-    await expect(overview.imageTemplatesCard).toContainText('Inactive');
-
-    await expect(overview.videoTemplatesCard).toContainText(/\d/);
-    await expect(overview.videoTemplatesCard).toContainText('Live (active)');
-    await expect(overview.videoTemplatesCard).toContainText('Inactive');
+  test('Jobs in progress card: label, caption and CTA text', async () => {
+    await expect(overview.jobsInProgressCard).toContainText('Jobs in progress');
+    await expect(overview.jobsInProgressCard).toContainText(/\d+ image · \d+ video \(queued or running\)/);
+    await expect(
+      overview.jobsInProgressCard.getByRole('link', { name: 'Open image jobs' })
+    ).toBeVisible();
   });
 
   // OV-04
+  test('Failed generations card: label, caption and CTA text', async () => {
+    await expect(overview.failedGenerationsCard).toContainText('Failed generations');
+    await expect(overview.failedGenerationsCard).toContainText(/\d+ image · \d+ video/);
+    await expect(
+      overview.failedGenerationsCard.getByRole('link', { name: 'Review failures' })
+    ).toBeVisible();
+  });
+
+  // OV-05
+  test('Successful generations card: label, caption and CTA text', async () => {
+    await expect(overview.successfulGenerationsCard).toContainText('Successful generations');
+    await expect(overview.successfulGenerationsCard).toContainText(
+      /\d+ image · \d+ video \(COMPLETE, all time\)/
+    );
+    await expect(
+      overview.successfulGenerationsCard.getByRole('link', { name: 'View operations' })
+    ).toBeVisible();
+  });
+
+  // OV-06
+  test('Billing plans card: label, caption and CTA text', async () => {
+    await expect(overview.billingPlansCard).toContainText('Billing plans');
+    await expect(overview.billingPlansCard).toContainText(/\d+ \/ \d+/);
+    await expect(overview.billingPlansCard).toContainText('Active plans vs total defined');
+    await expect(overview.billingPlansCard.getByRole('link', { name: 'Manage plans' })).toBeVisible();
+  });
+
+  // OV-07
+  test('Welcome AI credits / Credit packs / Generation costs / Referral rewards cards', async () => {
+    await expect(overview.welcomeAiCreditsCard).toContainText('Welcome AI credits');
+    await expect(overview.welcomeAiCreditsCard).toContainText('Free explorer grants; one-time per phone');
+    await expect(overview.welcomeAiCreditsCard.getByRole('link', { name: 'Configure' })).toBeVisible();
+
+    await expect(overview.creditPacksCard).toContainText('Credit packs');
+    await expect(overview.creditPacksCard).toContainText('IAP credit pack catalog');
+    await expect(overview.creditPacksCard.getByRole('link', { name: 'Manage packs' })).toBeVisible();
+
+    await expect(overview.generationCostsCard).toContainText('Generation costs');
+    await expect(overview.generationCostsCard).toContainText('Per-type credit debit amounts');
+    await expect(overview.generationCostsCard.getByRole('link', { name: 'Configure' })).toBeVisible();
+
+    await expect(overview.referralRewardsCard).toContainText('Referral rewards');
+    await expect(overview.referralRewardsCard).toContainText('Credits granted on referral signup');
+    await expect(overview.referralRewardsCard.getByRole('link', { name: 'Configure' })).toBeVisible();
+  });
+
+  // OV-08
+  test('TEMPLATES cards: label, counts breakdown and CTA text', async () => {
+    await expect(overview.imageTemplatesCard).toContainText('Image templates');
+    await expect(overview.imageTemplatesCard).toContainText('Total defined in admin');
+    await expect(overview.imageTemplatesCard).toContainText('Live (active)');
+    await expect(overview.imageTemplatesCard).toContainText('Inactive');
+    await expect(overview.imageTemplatesCard.getByRole('link', { name: 'Manage templates' })).toBeVisible();
+
+    await expect(overview.videoTemplatesCard).toContainText('Video templates');
+    await expect(overview.videoTemplatesCard).toContainText('Total defined in admin');
+    await expect(overview.videoTemplatesCard).toContainText('Live (active)');
+    await expect(overview.videoTemplatesCard).toContainText('Inactive');
+    await expect(overview.videoTemplatesCard.getByRole('link', { name: 'Manage templates' })).toBeVisible();
+  });
+
+  // OV-09
+  test('Content team activity: exact table headers and filter buttons', async () => {
+    await expect(overview.contentTeamActivitySection.locator('th')).toHaveText([
+      'User',
+      'Uploaded',
+      'Approved',
+      '→ Catalog',
+      '→ Prod',
+    ]);
+    await expect(overview.contentTeamActivitySection.getByRole('button')).toHaveText([
+      'Today',
+      'This week',
+      'This month',
+      'All time',
+    ]);
+  });
+
+  // OV-10
   test('Content team activity — filter by range', async () => {
     for (const range of ['Today', 'This week', 'This month', 'All time'] as const) {
       await overview.filterContentTeamActivity(range);
@@ -62,8 +135,16 @@ test.describe('Overview', () => {
     }
   });
 
-  // OV-05
-  test('Reviewer activity — filter by range, independent of content team filter', async () => {
+  // OV-11
+  test('Reviewer activity: exact table headers, filters, and independence from content team filter', async () => {
+    await expect(overview.reviewerActivitySection.locator('th')).toHaveText([
+      'User',
+      'Approved',
+      'Rejected',
+      '→ Catalog',
+      '→ Prod',
+    ]);
+
     await overview.filterContentTeamActivity('This week');
 
     for (const range of ['Today', 'This week', 'This month', 'All time'] as const) {
@@ -79,27 +160,51 @@ test.describe('Overview', () => {
     ).toBeVisible();
   });
 
-  // OV-06
-  test('Content structure cards show data', async () => {
-    for (const card of [overview.categoriesCard, overview.subcategoriesCard, overview.tagsCard]) {
+  // OV-12
+  test('Content structure cards: exact labels and data', async () => {
+    for (const [card, label] of [
+      [overview.categoriesCard, 'Categories'],
+      [overview.subcategoriesCard, 'Subcategories'],
+      [overview.tagsCard, 'Tags'],
+    ] as const) {
+      await expect(card).toContainText(label);
       await expect(card).toContainText(/\d/);
     }
   });
 
-  // OV-07
-  test('Translations & copy card shows data', async () => {
+  // OV-13
+  test('Translations & copy: card data and breakdown row labels', async () => {
+    await expect(overview.translationKeysCard).toContainText('Translation keys');
     await expect(overview.translationKeysCard).toContainText(/\d/);
+    await expect(overview.translationKeysCard).toContainText(
+      'One row per slug · locales en, ml, hi, ta · empty or whitespace counts as missing'
+    );
+
+    for (const label of [
+      'Fully localized (4/4)',
+      'Missing English',
+      'EN ok, other locales incomplete',
+      'Gaps when EN is set',
+    ]) {
+      await expect(overview.translationsSection).toContainText(label);
+    }
+    await expect(
+      overview.translationsSection.getByRole('link', { name: 'Manage translations' })
+    ).toBeVisible();
   });
 
-  // OV-08
-  test('Shortcuts links are present', async () => {
-    for (const label of ['Change log', 'Page schemas', 'Image job queue', 'Video workflow queue']) {
-      await expect(overview.shortcutsSection.getByRole('link', { name: label })).toBeVisible();
-    }
+  // OV-14
+  test('Shortcuts: exact link set and order', async () => {
+    await expect(overview.shortcutsSection.getByRole('link')).toHaveText([
+      'Change log',
+      'Page schemas',
+      'Image job queue',
+      'Video workflow queue',
+    ]);
   });
 });
 
-// OV-09 — deliberately outside the authenticated describe block above.
+// OV-15 — deliberately outside the authenticated describe block above.
 test('unauthenticated access shows login, not dashboard', async ({ page }) => {
   await page.goto('/admin/dashboard');
   await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible();

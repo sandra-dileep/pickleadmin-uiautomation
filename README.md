@@ -19,12 +19,15 @@ tests/
     base.ts       extended `test`/`expect` wiring page objects as fixtures
     auth.setup.ts logs in once via UI, saves storage state for reuse
   specs/
+    navigation/
+      testcases.md       shared sidebar/topbar chrome — nav groups/links, lang selector, etc.
+      navigation.spec.ts its automation
     overview/
       testcases.md       manual test-case list for the Overview page
-      overview.spec.ts   its automation
+      overview.spec.ts   its automation — every stat card/button/link/table header, exact text
     daily-report/
       testcases.md       manual test-case list for the Daily Report page
-      daily-report.spec.ts  its automation
+      daily-report.spec.ts  its automation — every stat tile/button/section label, exact text
   utils/
     env.ts   required .env values
     auth.ts  AUTH_FILE constant (path to saved storage state)
