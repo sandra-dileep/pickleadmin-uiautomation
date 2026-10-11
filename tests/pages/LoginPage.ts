@@ -14,9 +14,9 @@ export class LoginPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.usernameInput = page.getByLabel(/email|username/i);
-    this.passwordInput = page.getByLabel(/password/i);
-    this.submitButton = page.getByRole('button', { name: /log ?in|sign ?in/i });
+    this.usernameInput = page.getByRole('textbox', { name: 'Username' });
+    this.passwordInput = page.getByRole('textbox', { name: 'Password' });
+    this.submitButton = page.getByRole('button', { name: 'Sign in' });
     this.errorMessage = page.getByRole('alert');
   }
 

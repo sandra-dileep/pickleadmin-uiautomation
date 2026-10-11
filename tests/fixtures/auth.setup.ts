@@ -14,9 +14,8 @@ setup('authenticate', async ({ page }) => {
   await loginPage.goto(env.baseURL);
   await loginPage.login(env.username, env.password);
 
-  // Replace with a reliable "logged in" signal for the real app,
-  // e.g. a dashboard element or URL change.
-  await expect(page).not.toHaveURL(/login/i);
+  // Dashboard sidebar always has a "Log out" button once authenticated.
+  await expect(page.getByRole('button', { name: 'Log out' })).toBeVisible();
 
   await page.context().storageState({ path: authFile });
 });

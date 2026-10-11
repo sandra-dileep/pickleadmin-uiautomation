@@ -1,8 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 import 'dotenv/config';
 
-const authFile = 'playwright/.auth/user.json';
-
 export default defineConfig({
   testDir: './tests',
   fullyParallel: true,
@@ -14,6 +12,7 @@ export default defineConfig({
     ['list'],
   ],
   use: {
+    ...devices['Desktop Chrome'],
     baseURL: process.env.BASE_URL,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
@@ -21,22 +20,14 @@ export default defineConfig({
   },
 
   projects: [
-    // Logs in once via UI, saves storage state for all other projects.
+    // Logs in once via UI, saves storage state (tests/utils/auth.ts AUTH_FILE)
+    // for specs to opt into with `test.use({ storageState: AUTH_FILE })`.
     { name: 'setup', testMatch: /auth\.setup\.ts/ },
 
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'], storageState: authFile },
       dependencies: ['setup'],
       testMatch: /specs\/.*\.spec\.ts/,
     },
-
-    // Uncomment to add cross-browser coverage:
-    // {
-    //   name: 'firefox',
-    //   use: { ...devices['Desktop Firefox'], storageState: authFile },
-    //   dependencies: ['setup'],
-    //   testMatch: /specs\/.*\.spec\.ts/,
-    // },
   ],
 });

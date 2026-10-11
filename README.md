@@ -14,19 +14,37 @@ cp .env.example .env   # fill in BASE_URL, LOGIN_USERNAME, LOGIN_PASSWORD
 
 ```
 tests/
-  pages/        Page Object classes (LoginPage, …) — one per screen
+  pages/        Page Object classes — one per screen (LoginPage, OverviewPage, DailyReportPage)
   fixtures/
     base.ts       extended `test`/`expect` wiring page objects as fixtures
     auth.setup.ts logs in once via UI, saves storage state for reuse
-  specs/        actual test files (*.spec.ts)
-  utils/        env.ts and other shared helpers
+  specs/
+    overview/
+      testcases.md       manual test-case list for the Overview page
+      overview.spec.ts   its automation
+    daily-report/
+      testcases.md       manual test-case list for the Daily Report page
+      daily-report.spec.ts  its automation
+  utils/
+    env.ts   required .env values
+    auth.ts  AUTH_FILE constant (path to saved storage state)
 playwright.config.ts
 ```
 
+Each page/feature gets its own folder under `tests/specs/`: a `testcases.md`
+documenting what's covered (and explicitly what's out of scope), plus the
+`.spec.ts` that automates it. Add new folders the same way as coverage grows.
+
 Auth flow: the `setup` project runs `auth.setup.ts` first, logs in through
-the real UI once, and saves cookies/localStorage to `playwright/.auth/user.json`.
-Every spec in the `chromium` project then starts already authenticated —
-no repeated login per test, no `beforeEach` boilerplate.
+the real UI once, and saves cookies to `playwright/.auth/user.json`. Specs
+that need an authenticated session opt in explicitly with
+`test.use({ storageState: AUTH_FILE })` (see `overview.spec.ts` /
+`daily-report.spec.ts`) — this app's session cookie is set on a different
+subdomain (`api.*`) than the UI (`admin.*`), and doing this via
+`playwright.config.ts`'s per-project `use.storageState` did not reliably
+restore it, so each spec declares it directly instead. A test that needs a
+*clean* (logged-out) session — e.g. the "unauthenticated access" cases — goes
+outside that `test.describe` block in the same file.
 
 ## Commands
 
@@ -38,14 +56,12 @@ npm run test:debug   # step-through debugger
 npm run report       # open last HTML report
 ```
 
-## Next steps (site-specific)
+## Coverage
 
-1. Update selectors in `tests/pages/LoginPage.ts` to match the real DOM
-   (field labels/roles used are placeholders).
-2. Update the "logged in" assertion in `tests/fixtures/auth.setup.ts`
-   (currently just checks the URL no longer contains `login`).
-3. Add more Page Objects under `tests/pages/` as you automate more screens.
-4. Add specs under `tests/specs/`.
+Currently automated: **Overview** and **Daily Report** pages only (see their
+`testcases.md` files for exact scope). To add another page: create
+`tests/pages/<Page>.ts`, a `tests/specs/<feature>/` folder with its own
+`testcases.md` + `.spec.ts`, following the same pattern.
 
 ## CI
 
