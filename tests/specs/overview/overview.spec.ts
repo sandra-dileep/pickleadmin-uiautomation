@@ -202,9 +202,92 @@ test.describe('Overview', () => {
       'Video workflow queue',
     ]);
   });
+
+  // OV-15
+  test('"View users" navigates to the Users page', async ({ page }) => {
+    await overview.usersCard.getByRole('link', { name: 'View users' }).click();
+    await expect(page).toHaveURL(/\/admin\/users$/);
+    await expect(page.locator('h1')).toHaveText('Users');
+  });
+
+  // OV-16
+  test('operations CTAs (Jobs in progress / Failed generations / Successful generations) ' +
+    'each navigate to the image generation jobs queue', async ({ page }) => {
+    // Known current behaviour: all three stat cards route to the same queue
+    // page rather than a pre-filtered view (no distinguishing query/filter
+    // is applied on navigation) — see testcases.md for the product note.
+    for (const [card, cta] of [
+      [overview.jobsInProgressCard, 'Open image jobs'],
+      [overview.failedGenerationsCard, 'Review failures'],
+      [overview.successfulGenerationsCard, 'View operations'],
+    ] as const) {
+      await overview.goto();
+      await card.getByRole('link', { name: cta }).click();
+      await expect(page).toHaveURL(/\/admin\/operations\/image$/);
+      await expect(page.locator('h1')).toHaveText('Image generation jobs');
+    }
+  });
+
+  // OV-17
+  test('"Manage plans" navigates to the Billing plans page', async ({ page }) => {
+    await overview.billingPlansCard.getByRole('link', { name: 'Manage plans' }).click();
+    await expect(page).toHaveURL(/\/admin\/plans$/);
+    await expect(page.locator('h1')).toHaveText('Billing plans');
+  });
+
+  // OV-18
+  test('"Configure" / "Manage packs" CTAs navigate to their own pages', async ({ page }) => {
+    const cases: [typeof overview.welcomeAiCreditsCard, string, RegExp, string][] = [
+      [overview.welcomeAiCreditsCard, 'Configure', /\/admin\/welcome-ai$/, 'Welcome AI credits'],
+      [overview.creditPacksCard, 'Manage packs', /\/admin\/credit-packs$/, 'Credit Packs'],
+      [overview.generationCostsCard, 'Configure', /\/admin\/generation-costs$/, 'Generation Costs'],
+      [overview.referralRewardsCard, 'Configure', /\/admin\/referral-rewards$/, 'Referral Rewards'],
+    ];
+    for (const [card, cta, urlPattern, h1Text] of cases) {
+      await overview.goto();
+      await card.getByRole('link', { name: cta }).click();
+      await expect(page).toHaveURL(urlPattern);
+      await expect(page.locator('h1')).toHaveText(h1Text);
+    }
+  });
+
+  // OV-19
+  test('"Manage templates" CTAs navigate to their own template pages', async ({ page }) => {
+    await overview.imageTemplatesCard.getByRole('link', { name: 'Manage templates' }).click();
+    await expect(page).toHaveURL(/\/admin\/image-templates$/);
+    await expect(page.locator('h1')).toHaveText('Image templates');
+
+    await overview.goto();
+    await overview.videoTemplatesCard.getByRole('link', { name: 'Manage templates' }).click();
+    await expect(page).toHaveURL(/\/admin\/video-templates$/);
+    await expect(page.locator('h1')).toHaveText('Video templates');
+  });
+
+  // OV-20
+  test('"Manage translations" navigates to the Translations page', async ({ page }) => {
+    await overview.translationsSection.getByRole('link', { name: 'Manage translations' }).click();
+    await expect(page).toHaveURL(/\/admin\/translations$/);
+    await expect(page.locator('h1')).toHaveText('Translations');
+  });
+
+  // OV-21
+  test('Shortcut links navigate to their own pages', async ({ page }) => {
+    const cases: [string, RegExp, string][] = [
+      ['Change log', /\/admin\/changelog$/, 'Change log'],
+      ['Page schemas', /\/admin\/page-schemas$/, 'Page schemas'],
+      ['Image job queue', /\/admin\/operations\/image$/, 'Image generation jobs'],
+      ['Video workflow queue', /\/admin\/operations\/video$/, 'Video workflows'],
+    ];
+    for (const [label, urlPattern, h1Text] of cases) {
+      await overview.goto();
+      await overview.shortcutsSection.getByRole('link', { name: label }).click();
+      await expect(page).toHaveURL(urlPattern);
+      await expect(page.locator('h1')).toHaveText(h1Text);
+    }
+  });
 });
 
-// OV-15 — deliberately outside the authenticated describe block above.
+// OV-22 — deliberately outside the authenticated describe block above.
 test('unauthenticated access shows login, not dashboard', async ({ page }) => {
   await page.goto('/admin/dashboard');
   await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible();
