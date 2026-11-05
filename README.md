@@ -14,9 +14,14 @@ cp .env.example .env   # fill in BASE_URL, LOGIN_USERNAME, LOGIN_PASSWORD
 
 ```
 tests/
-  pages/        Page Object classes — one per screen (LoginPage, OverviewPage, DailyReportPage)
+  pages/
+    pageObjects/  locators only — one class per screen (LoginPageObjects,
+                  AppShellPageObjects, OverviewPageObjects, DailyReportPageObjects)
+    pageActions/  interactions only (goto/click/fill) — one class per screen,
+                  built on its matching pageObjects class
   fixtures/
-    base.ts       extended `test`/`expect` wiring page objects as fixtures
+    base.ts       extended `test`/`expect` exposing `<screen>Page` (locators)
+                  and `<screen>Actions` (interactions) fixtures
     auth.setup.ts logs in once via UI, saves storage state for reuse
   specs/
     navigation/
@@ -37,6 +42,13 @@ playwright.config.ts
 Each page/feature gets its own folder under `tests/specs/`: a `testcases.md`
 documenting what's covered (and explicitly what's out of scope), plus the
 `.spec.ts` that automates it. Add new folders the same way as coverage grows.
+
+Page Object Model rules:
+- Specs never build locators (`page.getByRole(...)` etc.) — every locator
+  lives in a `pageObjects/` class.
+- Specs never click/fill directly — interactions go through a `pageActions/`
+  class. Specs assert on `<screen>Page` locators and drive the UI with
+  `<screen>Actions`.
 
 Auth flow: the `setup` project runs `auth.setup.ts` first, logs in through
 the real UI once, and saves cookies to `playwright/.auth/user.json`. Specs
@@ -63,7 +75,9 @@ npm run report       # open last HTML report
 
 Currently automated: **Overview** and **Daily Report** pages only (see their
 `testcases.md` files for exact scope). To add another page: create
-`tests/pages/<Page>.ts`, a `tests/specs/<feature>/` folder with its own
+`tests/pages/pageObjects/<Page>PageObjects.ts` (locators) and
+`tests/pages/pageActions/<Page>PageActions.ts` (interactions), register both
+in `tests/fixtures/base.ts`, then a `tests/specs/<feature>/` folder with its own
 `testcases.md` + `.spec.ts`, following the same pattern.
 
 ## CI

@@ -1,33 +1,29 @@
 import { test, expect } from '../../fixtures/base';
 import { AUTH_FILE } from '../../utils/auth';
-import { AppShellPage } from '../../pages/AppShellPage';
 
 test.use({ storageState: AUTH_FILE });
 
 test.describe('Navigation / App shell', () => {
-  let shell: AppShellPage;
-
-  test.beforeEach(async ({ page }) => {
-    shell = new AppShellPage(page);
-    await page.goto('/admin/dashboard');
+  test.beforeEach(async ({ shellActions }) => {
+    await shellActions.gotoDashboard();
   });
 
   // NAV-01
-  test('brand + console label present', async () => {
-    await expect(shell.brandHeading).toBeVisible();
-    await expect(shell.brandHeading).toHaveText('Snapped Admin');
-    await expect(shell.consoleLabel).toBeVisible();
+  test('brand + console label present', async ({ shellPage }) => {
+    await expect(shellPage.brandHeading).toBeVisible();
+    await expect(shellPage.brandHeading).toHaveText('Snapped Admin');
+    await expect(shellPage.consoleLabel).toBeVisible();
   });
 
   // NAV-02
-  test('theme toggle button present', async () => {
-    await expect(shell.themeButton).toBeVisible();
-    await expect(shell.themeButton).toHaveAccessibleName('Theme: System');
+  test('theme toggle button present', async ({ shellPage }) => {
+    await expect(shellPage.themeButton).toBeVisible();
+    await expect(shellPage.themeButton).toHaveAccessibleName('Theme: System');
   });
 
   // NAV-03
-  test('all six nav groups present with exact labels, in order', async () => {
-    await expect(shell.nav.getByRole('button')).toHaveText([
+  test('all six nav groups present with exact labels, in order', async ({ shellPage }) => {
+    await expect(shellPage.navGroupButtons).toHaveText([
       'Dashboard',
       'Content',
       'Tools',
@@ -38,22 +34,22 @@ test.describe('Navigation / App shell', () => {
   });
 
   // NAV-04
-  test('Dashboard nav group expanded by default, others collapsed', async () => {
-    await expect(shell.dashboardNavGroup).toHaveAttribute('aria-expanded', 'true');
+  test('Dashboard nav group expanded by default, others collapsed', async ({ shellPage }) => {
+    await expect(shellPage.dashboardNavGroup).toHaveAttribute('aria-expanded', 'true');
     for (const group of [
-      shell.contentNavGroup,
-      shell.toolsNavGroup,
-      shell.billingNavGroup,
-      shell.managementNavGroup,
-      shell.settingsNavGroup,
+      shellPage.contentNavGroup,
+      shellPage.toolsNavGroup,
+      shellPage.billingNavGroup,
+      shellPage.managementNavGroup,
+      shellPage.settingsNavGroup,
     ]) {
       await expect(group).toHaveAttribute('aria-expanded', 'false');
     }
   });
 
   // NAV-05
-  test("Dashboard group's nav links have exact labels, in order", async () => {
-    await expect(shell.nav.getByRole('link')).toHaveText([
+  test("Dashboard group's nav links have exact labels, in order", async ({ shellPage }) => {
+    await expect(shellPage.navLinks).toHaveText([
       'Overview',
       'Daily Report',
       'Insights',
@@ -63,34 +59,38 @@ test.describe('Navigation / App shell', () => {
   });
 
   // NAV-06
-  test('collapsing/expanding a nav group toggles aria-expanded', async () => {
-    await expect(shell.contentNavGroup).toHaveAttribute('aria-expanded', 'false');
+  test('collapsing/expanding a nav group toggles aria-expanded', async ({ shellPage, shellActions }) => {
+    await expect(shellPage.contentNavGroup).toHaveAttribute('aria-expanded', 'false');
 
-    await shell.expandNavGroup(shell.contentNavGroup);
-    await expect(shell.contentNavGroup).toHaveAttribute('aria-expanded', 'true');
+    await shellActions.toggleNavGroup(shellPage.contentNavGroup);
+    await expect(shellPage.contentNavGroup).toHaveAttribute('aria-expanded', 'true');
 
-    await shell.expandNavGroup(shell.contentNavGroup);
-    await expect(shell.contentNavGroup).toHaveAttribute('aria-expanded', 'false');
+    await shellActions.toggleNavGroup(shellPage.contentNavGroup);
+    await expect(shellPage.contentNavGroup).toHaveAttribute('aria-expanded', 'false');
   });
 
   // NAV-07
-  test('Overview / Daily Report links navigate correctly', async ({ page }) => {
-    await shell.dailyReportLink.click();
-    await expect(page.getByRole('heading', { name: 'Daily report' })).toBeVisible();
+  test('Overview / Daily Report links navigate correctly', async ({
+    shellActions,
+    overviewPage,
+    dailyReportPage,
+  }) => {
+    await shellActions.openDailyReport();
+    await expect(dailyReportPage.heading).toBeVisible();
 
-    await shell.overviewLink.click();
-    await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+    await shellActions.openOverview();
+    await expect(overviewPage.heading).toBeVisible();
   });
 
   // NAV-08
-  test('language selector has exact 4 options, in order', async () => {
-    await expect(shell.languageSelect).toBeVisible();
-    await expect(shell.languageSelect).toHaveAccessibleName('App language');
-    await expect(shell.languageSelect.locator('option')).toHaveText(['EN', 'ML', 'TA', 'HI']);
+  test('language selector has exact 4 options, in order', async ({ shellPage }) => {
+    await expect(shellPage.languageSelect).toBeVisible();
+    await expect(shellPage.languageSelect).toHaveAccessibleName('App language');
+    await expect(shellPage.languageOptions).toHaveText(['EN', 'ML', 'TA', 'HI']);
   });
 
   // NAV-09
-  test('log out button present', async () => {
-    await expect(shell.logoutButton).toBeVisible();
+  test('log out button present', async ({ shellPage }) => {
+    await expect(shellPage.logoutButton).toBeVisible();
   });
 });

@@ -1,16 +1,23 @@
-import { expect, type Locator, type Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 
 export type TrendRange = '7 days' | '30 days' | '90 days';
 export type ReportTab = 'Pickle it' | 'Pickle Daily';
 
 /**
- * Page Object for Dashboard → Daily Report (/admin/daily-report).
+ * Locators for Dashboard → Daily Report (/admin/daily-report).
  */
-export class DailyReportPage {
+export class DailyReportPageObjects {
   readonly page: Page;
   readonly heading: Locator;
+  /** Full subtitle, e.g. "One IST calendar day. Reporting 2026-01-01 (vs. 2025-12-31)." */
+  readonly subtitle: Locator;
+  /** First "Reporting YYYY-MM-DD" text on the page — used to read the selected date. */
+  readonly reportingDateText: Locator;
 
   // Top controls
+  readonly pickleItTab: Locator;
+  readonly pickleDailyTab: Locator;
+  readonly dateLabel: Locator;
   readonly yesterdayButton: Locator;
   readonly includeInternalUsersCheckbox: Locator;
 
@@ -28,6 +35,7 @@ export class DailyReportPage {
 
   // Sections
   readonly trendsSection: Locator;
+  readonly trendRangeButtons: Locator;
   readonly revenueSection: Locator;
   readonly generationsSection: Locator;
   readonly creditLedgerSection: Locator;
@@ -36,7 +44,14 @@ export class DailyReportPage {
   constructor(page: Page) {
     this.page = page;
     this.heading = page.getByRole('heading', { name: 'Daily report' });
+    this.subtitle = page.getByText(
+      /^One IST calendar day\. Reporting \d{4}-\d{2}-\d{2} \(vs\. \d{4}-\d{2}-\d{2}\)\.$/
+    );
+    this.reportingDateText = page.getByText(/Reporting \d{4}-\d{2}-\d{2}/).first();
 
+    this.pickleItTab = this.tab('Pickle it');
+    this.pickleDailyTab = this.tab('Pickle Daily');
+    this.dateLabel = page.getByText('Date (IST)', { exact: true });
     this.yesterdayButton = page.getByRole('button', { name: 'Yesterday' });
     this.includeInternalUsersCheckbox = page.getByRole('checkbox', {
       name: 'Include internal users',
@@ -54,15 +69,23 @@ export class DailyReportPage {
     this.totalUsersCard = this.statCard('Total users');
 
     this.trendsSection = this.section('Trends');
+    this.trendRangeButtons = this.trendsSection.getByRole('button');
     this.revenueSection = this.section('Revenue');
     this.generationsSection = this.section('Generations');
     this.creditLedgerSection = this.section('Credit ledger');
     this.engagementSection = this.section('Engagement');
   }
 
-  async goto() {
-    await this.page.goto('/admin/daily-report');
-    await expect(this.heading).toBeVisible();
+  tab(tab: ReportTab): Locator {
+    return this.page.getByRole('button', { name: tab });
+  }
+
+  trendRangeButton(range: TrendRange): Locator {
+    return this.trendsSection.getByRole('button', { name: range });
+  }
+
+  trendChartTitle(title: string): Locator {
+    return this.trendsSection.getByText(title, { exact: true });
   }
 
   /** Stat tile = its label <p> wrapped one level up in the bordered card div. */
@@ -75,21 +98,5 @@ export class DailyReportPage {
     return this.page
       .getByRole('heading', { name: title, exact: true })
       .locator('xpath=ancestor::section[1]');
-  }
-
-  async selectTab(tab: ReportTab) {
-    await this.page.getByRole('button', { name: tab }).click();
-  }
-
-  async selectTrendRange(range: TrendRange) {
-    await this.trendsSection.getByRole('button', { name: range }).click();
-  }
-
-  async toggleIncludeInternalUsers() {
-    await this.includeInternalUsersCheckbox.click();
-  }
-
-  async goToYesterday() {
-    await this.yesterdayButton.click();
   }
 }

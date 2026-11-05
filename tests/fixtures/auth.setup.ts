@@ -1,5 +1,6 @@
 import { test as setup, expect } from '@playwright/test';
-import { LoginPage } from '../pages/LoginPage';
+import { LoginPageActions } from '../pages/pageActions/LoginPageActions';
+import { AppShellPageObjects } from '../pages/pageObjects/AppShellPageObjects';
 import { env } from '../utils/env';
 
 const authFile = 'playwright/.auth/user.json';
@@ -10,12 +11,12 @@ const authFile = 'playwright/.auth/user.json';
  * every other test starts already authenticated — no repeated UI login.
  */
 setup('authenticate', async ({ page }) => {
-  const loginPage = new LoginPage(page);
-  await loginPage.goto(env.baseURL);
-  await loginPage.login(env.username, env.password);
+  const loginActions = new LoginPageActions(page);
+  await loginActions.goto(env.baseURL);
+  await loginActions.loginAs(env.username, env.password);
 
   // Dashboard sidebar always has a "Log out" button once authenticated.
-  await expect(page.getByRole('button', { name: 'Log out' })).toBeVisible();
+  await expect(new AppShellPageObjects(page).logoutButton).toBeVisible();
 
   await page.context().storageState({ path: authFile });
 });

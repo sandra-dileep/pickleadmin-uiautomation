@@ -1,11 +1,11 @@
-import { expect, type Locator, type Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 
 /**
- * Page Object for the shared chrome (sidebar + topbar) present on every
+ * Locators for the shared chrome (sidebar + topbar) present on every
  * authenticated admin page — brand, nav groups, nav links, language
  * selector, theme toggle, log out.
  */
-export class AppShellPage {
+export class AppShellPageObjects {
   readonly page: Page;
 
   /** The sidebar <nav aria-label="Admin navigation">. Scope nav-link lookups
@@ -17,7 +17,10 @@ export class AppShellPage {
   readonly themeButton: Locator;
   readonly logoutButton: Locator;
   readonly languageSelect: Locator;
+  readonly languageOptions: Locator;
 
+  /** Every nav-group toggle button, in DOM order. */
+  readonly navGroupButtons: Locator;
   readonly dashboardNavGroup: Locator;
   readonly contentNavGroup: Locator;
   readonly toolsNavGroup: Locator;
@@ -25,6 +28,8 @@ export class AppShellPage {
   readonly managementNavGroup: Locator;
   readonly settingsNavGroup: Locator;
 
+  /** Every visible nav link, in DOM order. */
+  readonly navLinks: Locator;
   readonly overviewLink: Locator;
   readonly dailyReportLink: Locator;
   readonly insightsLink: Locator;
@@ -41,7 +46,9 @@ export class AppShellPage {
     this.themeButton = page.getByRole('button', { name: /^Theme:/ });
     this.logoutButton = page.getByRole('button', { name: 'Log out' });
     this.languageSelect = page.getByRole('combobox', { name: 'App language' });
+    this.languageOptions = this.languageSelect.locator('option');
 
+    this.navGroupButtons = this.nav.getByRole('button');
     this.dashboardNavGroup = this.nav.getByRole('button', { name: 'Dashboard', exact: true });
     this.contentNavGroup = this.nav.getByRole('button', { name: 'Content', exact: true });
     this.toolsNavGroup = this.nav.getByRole('button', { name: 'Tools', exact: true });
@@ -49,14 +56,11 @@ export class AppShellPage {
     this.managementNavGroup = this.nav.getByRole('button', { name: 'Management', exact: true });
     this.settingsNavGroup = this.nav.getByRole('button', { name: 'Settings', exact: true });
 
+    this.navLinks = this.nav.getByRole('link');
     this.overviewLink = this.nav.getByRole('link', { name: 'Overview', exact: true });
     this.dailyReportLink = this.nav.getByRole('link', { name: 'Daily Report', exact: true });
     this.insightsLink = this.nav.getByRole('link', { name: 'Insights', exact: true });
     this.generationAnalyticsLink = this.nav.getByRole('link', { name: 'Generation analytics', exact: true });
     this.changeLogLink = this.nav.getByRole('link', { name: 'Change log', exact: true });
-  }
-
-  async expandNavGroup(group: Locator) {
-    await group.click();
   }
 }
